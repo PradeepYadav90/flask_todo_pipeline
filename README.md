@@ -1,10 +1,10 @@
 # Flask To-Do App with Docker, Jenkins, and AWS EC2
 
-A production-grade To-Do list application built with Flask and SQLite, containerized using Docker, and deployable on AWS EC2 with Jenkins CI/CD support.
+A production-grade To-Do list application built with Flask and SQLite, containerized using Docker, and deployed on AWS EC2 with Jenkins CI/CD.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 todo_app/
@@ -21,140 +21,147 @@ todo_app/
 ├── requirements.txt
 ├── Dockerfile
 ├── Jenkinsfile
+
 ```
 
 ---
 
-## 🚀 Features
+##  Features
 
 - Add, complete, and delete tasks
 - Flask web app with SQLite database
-- Dockerized for easy deployment
-- CI/CD via Jenkins
-- Deployable on AWS EC2
+- Dockerized for deployment
+- CI/CD using Jenkins
+- Deployed on AWS EC2
 
 ---
 
-## 🛠️ Prerequisites
+##  Prerequisites
 
-- Python 3.8+
-- Docker
-- Git
-- Jenkins (locally or on EC2)
-- AWS EC2 account (Ubuntu 22.04 recommended)
+- AWS EC2 instance (Ubuntu 22.04 recommended)
+- Docker installed on EC2 ✅
+- Jenkins installed on EC2 ✅
+- GitHub repository with project code
+- Inbound ports open in EC2 security group:
+  - Port 22 (SSH)
+  - Port 5000 (Flask)
+  - Port 8080 (Jenkins UI)
 
 ---
 
-## 🔧 Setup Steps (Local Development)
+##  Local Development (Optional)
 
 1. Clone the repository
-2. Create a virtual environment (optional)
-3. Install dependencies from `requirements.txt`
-4. Run the Flask app using `python run.py`
-5. Verify `todo.db` is created automatically in the `instance/` directory
+2. (Optional) Create virtual environment
+3. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+4. Run the app:
+   ```
+   python run.py
+   ```
+5. App runs at `http://localhost:5000`
 
 ---
 
-## 🐳 Docker Setup
+##  Docker Setup
 
-1. Build the Docker image:
+1. Build Docker image:
    ```
    docker build -t todo-app .
    ```
 
-2. Run the Docker container:
+2. Run the container:
    ```
    docker run -d -p 5000:5000 --name todo-container todo-app
    ```
 
-3. Open browser at `http://localhost:5000`
+3. App runs at `http://localhost:5000`
 
 ---
 
-## ⚙️ Jenkins Pipeline (CI/CD)
+##  Jenkins + Docker on EC2
 
-1. Set up Jenkins (on local machine or EC2)
-2. Create a Jenkins job using `Jenkinsfile` from the repo
-3. Configure Jenkins to:
-   - Clone repo
-   - Build Docker image
-   - Stop old container (if any)
-   - Run new Docker container
-4. Trigger build and confirm deployment
+You’ve already installed Jenkins and Docker on your EC2 instance ✅
 
----
+### Verify installations:
 
-## ☁️ Deploy to AWS EC2 (Step-by-Step)
-
-### 1. Launch EC2 Instance
-- OS: Ubuntu 22.04
-- Open ports: 22 (SSH), 5000 or 80 (HTTP)
-- Download and save your `.pem` key file
-
-### 2. SSH into EC2
-```
-ssh -i your-key.pem ubuntu@your-ec2-public-ip
+```bash
+docker --version
+sudo systemctl status jenkins
 ```
 
-### 3. Install Docker on EC2
-```
-sudo apt update
-sudo apt install -y docker.io
-sudo usermod -aG docker $USER
-newgrp docker
-```
+### Grant Jenkins access to Docker:
 
-### 4. Clone your Project
-```
-git clone https://github.com/yourusername/todo_app.git
-cd todo_app
-```
-
-### 5. Build and Run Docker Container
-```
-docker build -t todo-app .
-docker run -d -p 5000:5000 --name todo-container todo-app
-```
-
-### 6. Access the App
-Visit:  
-```
-http://<your-ec2-public-ip>:5000
+```bash
+sudo usermod -aG docker jenkins
+sudo chown jenkins:docker /var/run/docker.sock
+sudo systemctl restart jenkins
 ```
 
 ---
 
-## 📦 Optional Enhancements
+##  Jenkins Pipeline Setup
 
-- Set up Nginx reverse proxy and map port 80
-- Use Let's Encrypt for HTTPS
-- Replace SQLite with PostgreSQL for production
-- Store secrets in environment variables or AWS Parameter Store
-- Use Docker Compose for multi-container setup
+### 1. Access Jenkins:
+```
+http://<EC2_PUBLIC_IP>:8080
+```
+
+### 2. Unlock Jenkins with initial password:
+```bash
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+```
+
+### 3. Install suggested plugins and create admin user
+
+### 4. Create a new pipeline job:
+- Name: `todo-pipeline`
+- Type: **Pipeline**
+- Choose: **Pipeline script from SCM**
+- Repository URL: your GitHub repo
+- Script Path: `Jenkinsfile`
 
 ---
 
-## 🔐 .gitignore Recommendations
+##  Jenkins Pipeline Stages (in Jenkinsfile)
+
+- Clone your Flask project from GitHub
+- Build Docker image
+- Stop/remove existing container
+- Run the new container
+
+---
+
+##  Access the App
+
+Once Jenkins completes the build:
 
 ```
-__pycache__/
-*.pyc
-instance/
-todo.db
-.env
+http://<EC2_PUBLIC_IP>:5000
 ```
 
 ---
 
-## ✅ Status
+##  Optional Enhancements
+
+- Add Nginx reverse proxy to serve on port 80
+- Enable HTTPS with Let's Encrypt
+- Replace SQLite with PostgreSQL
+- Use GitHub webhooks for auto-deployment
+- Push Docker image to Amazon ECR or Docker Hub
+
+---
+
+---
+
+##  Status
 
 - [x] Flask app created
 - [x] Dockerized
-- [x] Jenkins CI/CD pipeline ready
-- [x] AWS EC2 deployment verified
+- [x] Jenkins installed on EC2
+- [x] Docker installed on EC2
+- [x] CI/CD pipeline built
+- [x] Flask app deployed via Jenkins on EC2
 
----
-
-## 📄 License
-
-MIT License
