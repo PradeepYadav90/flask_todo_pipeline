@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                git 'https://your-repo-url.git'
+                git 'https://github.com/PradeepYadav90/flask_todo_pipeline.git' ,branch:'main'
             }
         }
         stage('Build') {
